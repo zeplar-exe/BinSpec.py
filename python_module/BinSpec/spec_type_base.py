@@ -1,4 +1,4 @@
-class type_base:
+class spec_type_base:
     def get_length(self):
         raise NotImplementedError("get_length() must be implemented.")
 

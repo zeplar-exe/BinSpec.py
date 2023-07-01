@@ -7,7 +7,7 @@ LONG_DESCRIPTION = ''
 # Setting up
 setup(
        # the name must match the folder name 'verysimplemodule'
-        name="BinSpec.py", 
+        name="BinSpec", 
         version=VERSION,
         author="",
         author_email="",

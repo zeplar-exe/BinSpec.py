@@ -1,6 +1,6 @@
 from type_base import type_base
 
-class custom_type(type_base):
+class custom_spec_type(type_base):
     def __init__(self, name, **members):
         self.name = name
         self.members = members
