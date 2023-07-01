@@ -1,1 +1,1 @@
-from spec import SPEC
+from spec import spec
