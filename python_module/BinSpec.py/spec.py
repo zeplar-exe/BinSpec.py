@@ -1,0 +1,2 @@
+def SPEC(specType):
+    pass
