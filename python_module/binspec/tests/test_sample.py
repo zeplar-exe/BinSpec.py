@@ -1,5 +1,5 @@
 import unittest
-from binspec import spec_type
+import spec_type
 
 class SampleTest(unittest.TestCase):
     def test(self):

@@ -1,6 +1,6 @@
-from type_base import type_base
+from spec_type_base import spec_type_base
 
-class string(type_base):
+class string(spec_type_base):
     def __init__(self, encoding, length):
         self.encoding = encoding
 
@@ -10,7 +10,7 @@ class string(type_base):
     def parse(self, input_bytes):
         return input_bytes.decode(encoding)
 
-class integer(type_base):
+class integer(spec_type_base):
     def __init__(self, byte_length):
         self.byte_length = byte_length
 
