@@ -10,4 +10,4 @@ class custom_spec_enum(spec_type_base):
         return self.spec_type.get_length()
 
     def parse(self):
-        return self.specType.parse()
+        return self.spec_type.parse()

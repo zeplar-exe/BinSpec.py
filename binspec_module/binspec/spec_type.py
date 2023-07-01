@@ -18,4 +18,4 @@ class integer(spec_type_base):
         return self.byte_length
 
     def parse(self, input_bytes):
-        return int.from_byte(input_bytes)
+        return int.from_bytes(input_bytes, "big")
