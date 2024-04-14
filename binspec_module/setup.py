@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1' 
+VERSION = '1.0.0' 
 DESCRIPTION = ''
 LONG_DESCRIPTION = ''
 
 # Setting up
 setup(
        # the name must match the folder name 'verysimplemodule'
-        name="BinSpec", 
+        name="binspec", 
         version=VERSION,
         author="",
         author_email="",
