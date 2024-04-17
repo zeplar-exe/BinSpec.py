@@ -1,3 +1,2 @@
-from spec import spec
-import spec_type
-from exception import SpecError, SpecTypeError
+from .spec import Specification
+from .errors import SpecError, SpecTypeError
