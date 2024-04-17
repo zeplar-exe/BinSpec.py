@@ -1,3 +1,4 @@
+html_template = """
 <html>
 
 <style>
@@ -118,3 +119,4 @@
 </body>
 
 </html>
+"""

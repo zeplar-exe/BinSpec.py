@@ -103,13 +103,11 @@ class Specification:
         spec_history = ",".join(map(lambda s: json_spec_template % (s[0].get_bit_length(), s[2]), self.get_history()))
         binary_string = "".join(map(lambda b: format(b, '#010b'), self.get_tracked_bytes()))
 
-        print("SPEC HISTORY", spec_history)
-        print("BINARY STIRNG", binary_string)
+        from .ui import html_template
 
-        with open("./binspec/ui/page.html") as f:
-          html = f.read().replace("/*INSERT_SPEC_HISTORY*/", spec_history).replace("/*INSERT_BINARY_STRING*/", binary_string)
+        html = html_template.replace("/*INSERT_SPEC_HISTORY*/", spec_history).replace("/*INSERT_BINARY_STRING*/", binary_string)
           
-          return html
+        return html
 
     app.add_url_rule("/", view_func=index)
 

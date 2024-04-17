@@ -18,5 +18,6 @@ setup(
         # needs to be installed along with your package. Eg: 'caer'
         
         keywords=[],
-        classifiers= []
+        classifiers= [],
+        package_data={"ui/"}
 )
