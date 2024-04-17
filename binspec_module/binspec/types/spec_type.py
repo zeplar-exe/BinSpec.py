@@ -139,10 +139,6 @@ class Packed(SpecType):
     return Packed.from_dict(kwargs)
 
   @staticmethod
-  def from_type(t: type) -> "Packed":
-    raise NotImplementedError("Packed.from_type is not implemented.")
-
-  @staticmethod
   def from_dict(d: dict[str, SpecType]) -> "Packed":
     return Packed(d.values(), names=d.keys())
 
@@ -179,26 +175,28 @@ class Bool(SpecType):
 
 
 class Bytes(SpecType):
-  def __init__(self, count: int):
+  def __init__(self, count: int, *, big_endian: bool=True):
     self.count = count
+    self.big_endian = big_endian
 
   def get_bit_length(self) -> int:
     return self.count * 8
 
   def parse(self, bits: list[int]) -> Any:
-    return SpecType.bits_to_bytes(self, bits)
+    return SpecType.bits_to_bytes(self, bits, self.big_endian)
 
 
 class Bits(SpecType):
-  def __init__(self, count: int, *, parse_as_bytes: bool=False):
+  def __init__(self, count: int, *, parse_as_bytes: bool=False, big_endian: bool=True):
     self.bit_length = count
     self.parse_as_bytes = parse_as_bytes
+    self.big_endian = big_endian
 
   def get_bit_length(self) -> int:
     return self.bit_length
 
   def parse(self, bits: list[int]) -> Any:
-    return SpecType.bits_to_bytes(self, bits) if self.parse_as_bytes else bits
+    return SpecType.bits_to_bytes(self, bits, self.big_endian) if self.parse_as_bytes else bits
 
 
 class Array(SpecType):
