@@ -1,13 +1,20 @@
 from io import BytesIO
 from .types import SpecType
-from .errors import SpecError, SpecTypeError
+from .errors import SpecError, SpecTypeError, SpecEofError
 from typing import Union, Callable, Any
 
 
 class Specification:
-  def __init__(self, stream: BytesIO, *, track_history: bool=True, track_stream: bool=False, middleware: Callable[SpecType, Any]=None):
+  """This class is the primary interface for parsing binary streams with :class:`SpecType`s.
+  
+  Arguments:
+  :param stream: BytesIO object or similar which yields bytes from a read() method.
+
+  Keyword Arguments:
+  :param track_history: flag whether to keep track of SpecTypes passed to expect(...).
+  :param middleware: callable invoked whenever a SpecType successfully parses a value."""
+  def __init__(self, stream: BytesIO, *, track_history: bool=True, middleware: Callable[SpecType, Any]=None):
     self.stream: BytesIO = stream
-    self.track_stream: bool = track_stream
     self.track_history: bool = track_history
     self.middleware: Callable[SpecType, Any] = middleware
 
@@ -19,12 +26,19 @@ class Specification:
     self.__current_byte = -1
 
   def get_history(self) -> list[tuple[SpecType, Any, Union[str, None]]]:
+    """Get the SpecType history of this Specification. This is a list of tuples  If the track_history attribute is false, this method will return an empty array.
+
+    :return: List of tuples containing the SpecType, its parsed value, and the optionally proivded label."""
     return self.__history
 
-  def get_tracked_bytes(self) -> bytearray:
-    return self.__tracked_bytes
-
   def expect(self, spec_type: SpecType, *, none_at_eof: bool=False, label: Union[str, None]=None) -> Any:
+    """Use the specified SpecType to parse from the bytes stream.
+    
+    Arguments:
+    :param spec_type: the SpecType to use
+    
+    Keyword Arguments
+    :param none_at-eof: if false, this method will raise a SpecError when attempting to read past the end of the stream. If true, this method will return None in that case."""
     bit_length = spec_type.get_bit_length()
 
     if bit_length < 0:
@@ -46,23 +60,19 @@ class Specification:
     return value
 
   def assert_eof(self) -> None:
+    """Check if there are more bytes left in the stream and raise a SpecEofError if not. This method moves the stream forward by one."""
     if len(self.stream.read(1)) > 0:
-      self.fail(f"Expected end of file after {self.__byte_offset} bytes.")
+      raise SpecEofError(f"Expected end of file after {self.__byte_offset} bytes.")
 
   def __take_bits(self, count: int, none_at_eof: bool) -> list[int]:
     def next_byte():
       try:
         self.__current_byte = self.stream.read(1)[0]
-        
-        if self.track_stream:
-          self.__tracked_bytes.append(self.__current_byte)
-      except IndexError:
+      except IndexError as err:
         if none_at_eof:
           return None
         
-        self.fail(
-            f"Ran out of bytes. Expected byte after {self.__byte_offset} bytes."
-        )
+        raise SpecEofError(f"Ran out of bytes. Expected byte after {self.__byte_offset} bytes.") from err
 
     bits = []
     
@@ -90,9 +100,13 @@ class Specification:
     return bits
 
   def fail(self, reason: str="Manual failure.") -> None:
+    """Manually raise a SpecError with the given reason."""
     raise SpecError(reason)
 
-  def show(self):
+  def show(self, data: bytes):
+    """Show a webpage which visualizes the specification. This method depends on history tracking to be enabled. Addtionally requires Flask to be installed.
+    
+    :param stream: A bytes object used to display the specification. In most cases, this is sourced from the bytes stream that was initially passed to the specification."""
     from flask import Flask
     import webbrowser
 
@@ -101,7 +115,7 @@ class Specification:
     def index():
         json_spec_template = "{ bit_length: %s, label: '%s' }"
         spec_history = ",".join(map(lambda s: json_spec_template % (s[0].get_bit_length(), s[2]), self.get_history()))
-        binary_string = "".join(map(lambda b: format(b, '#010b'), self.get_tracked_bytes()))
+        binary_string = "".join(map(lambda b: format(b, '#010b'), stream.read()))
 
         from .ui import html_template
 

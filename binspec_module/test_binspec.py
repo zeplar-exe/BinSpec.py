@@ -1,8 +1,8 @@
 import unittest
-from binspec import Specification
 from io import BytesIO
 
 import binspec
+from binspec import Specification
 from binspec.types import Int, String, Array, Bool, Packed, Bits, Bytes
 
 
@@ -83,19 +83,6 @@ class PackedTests(unittest.TestCase):
                     Array(Bool(single_bit=True), length=2)
                 ]
             ))
-
-        self.assertEqual(packed, [3, 3, [False, False]])
-
-
-class ShowTests(unittest.TestCase):
-    def testPackedBySpecTypeArray(self):
-        my_spec = create_specification(0b11001100)
-        my_spec.track_stream = True
-        a = my_spec.expect(Int(bits=2), label="Int A")
-        b = my_spec.expect(Int(bits=4), label="Int B")
-        c = my_spec.expect(Array(Bool(single_bit=True), length=2), label="Arr C")
-        
-        my_spec.show()
 
         self.assertEqual(packed, [3, 3, [False, False]])
 
