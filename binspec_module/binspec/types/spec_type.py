@@ -12,7 +12,7 @@ class SpecType:
     raise NotImplementedError("SpecType.get_bit_length not implemented.")
 
   @abstractmethod
-  def parse(self, bits: list[int]):
+  def parse(self, bits: bytes):
     raise NotImplementedError("SpecType.parse not implemented.")
 
 
@@ -23,9 +23,8 @@ class Int(SpecType):
 
   def get_bit_length(self) -> int:
     return self.__bit_length
-
-  @abstractmethod
-  def parse(self, bits: list[int]):
+  
+  def parse(self, bits: bytes):
     return bits_to_int(bits, big_endian=self.big_endian)
 
 
@@ -58,7 +57,7 @@ class String(SpecType):
   def get_bit_length(self) -> int:
     return 8 * self.length
 
-  def parse(self, bits: list[int]) -> Any:
+  def parse(self, bits: bytes) -> str:
     bytes = bits_to_bytes(bits, big_endian=self.big_endian)
 
     return bytes.decode(self.encoding)
@@ -83,7 +82,7 @@ class Packed(SpecType):
   def get_bit_length(self) -> int:
     return sum([t[1] for t in self.spec_types])
 
-  def parse(self, bits: list[int]) -> Any:
+  def parse(self, bits: bytes) -> list:
     values = []
     i = 0
 
@@ -105,7 +104,7 @@ class Bool(SpecType):
   def get_bit_length(self) -> int:
     return 1 if self.single_bit else 8
 
-  def parse(self, bits: list[int]) -> Any:
+  def parse(self, bits: bytes) -> bool:
     if self.single_bit:
       return bits[0] != 0
     else:
@@ -120,7 +119,7 @@ class Bytes(SpecType):
   def get_bit_length(self) -> int:
     return self.count * 8
 
-  def parse(self, bits: list[int]) -> Any:
+  def parse(self, bits: bytes) -> bytes:
     return bits_to_bytes(self, bits, self.big_endian)
 
 
@@ -132,7 +131,7 @@ class Bits(SpecType):
   def get_bit_length(self) -> int:
     return self.bit_length
 
-  def parse(self, bits: list[int]) -> Any:
+  def parse(self, bits: bytes) -> bytes:
     return bits
 
 
@@ -145,7 +144,7 @@ class Array(SpecType):
   def get_bit_length(self) -> int:
     return self.__item_length * self.length
 
-  def parse(self, bits: list[int]) -> Any:
+  def parse(self, bits: bytes) -> Any:
     values = []
 
     for i in range(self.length):

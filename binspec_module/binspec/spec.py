@@ -5,7 +5,7 @@ from typing import Union, Callable, Any
 
 
 class Specification:
-  """This class is the primary interface for parsing binary streams with :class:`SpecType`s.
+  """This class is the primary interface for parsing binary streams with :class:`SpecTypes`.
   
   Arguments:
   :param stream: BytesIO object or similar which yields bytes from a read() method.
@@ -15,11 +15,9 @@ class Specification:
   :param middleware: callable invoked whenever a SpecType successfully parses a value."""
   def __init__(self, stream: BytesIO, *, track_history: bool=True, middleware: Callable[SpecType, Any]=None):
     self.stream: BytesIO = stream
-    self.track_history: bool = track_history
     self.middleware: Callable[SpecType, Any] = middleware
 
-    self.__history = []
-    self.__tracked_bytes = bytearray()
+    self.__history = [] if track_history else None
 
     self.__bit_offset = 0
     self.__byte_offset = 0
@@ -30,6 +28,9 @@ class Specification:
 
     :return: List of tuples containing the SpecType, its parsed value, and the optionally proivded label."""
     return self.__history
+
+  def is_history_enabled(self):
+    return self.__history != None
 
   def expect(self, spec_type: SpecType, *, none_at_eof: bool=False, label: Union[str, None]=None) -> Any:
     """Use the specified SpecType to parse from the bytes stream.
@@ -51,7 +52,7 @@ class Specification:
 
     value = spec_type.parse(bits)
 
-    if self.track_history: 
+    if self.is_history_enabled(): 
       self.__history.append((spec_type, value, label))
     
     if self.middleware is not None: 
@@ -73,14 +74,14 @@ class Specification:
           return None
         
         raise SpecEofError(f"Ran out of bytes. Expected byte after {self.__byte_offset} bytes.") from err
-
-    bits = []
     
     if self.__current_byte == -1:
       next_byte()
         
       if self.__current_byte is None:
         return None
+    
+    bits = bytearray()
     
     while count > 0:
       count -= 1
@@ -97,33 +98,8 @@ class Specification:
       bits.append(bit >> 7) # shift last bit to first position to return a 1
       self.__bit_offset += 1
 
-    return bits
+    return bytes(bits)
 
   def fail(self, reason: str="Manual failure.") -> None:
     """Manually raise a SpecError with the given reason."""
     raise SpecError(reason)
-
-  def show(self, data: bytes):
-    """Show a webpage which visualizes the specification. This method depends on history tracking to be enabled. Addtionally requires Flask to be installed.
-    
-    :param stream: A bytes object used to display the specification. In most cases, this is sourced from the bytes stream that was initially passed to the specification."""
-    from flask import Flask
-    import webbrowser
-
-    app = Flask("BinSpec")
-
-    def index():
-        json_spec_template = "{ bit_length: %s, label: '%s' }"
-        spec_history = ",".join(map(lambda s: json_spec_template % (s[0].get_bit_length(), s[2]), self.get_history()))
-        binary_string = "".join(map(lambda b: format(b, '#010b'), stream.read()))
-
-        from .ui import html_template
-
-        html = html_template.replace("/*INSERT_SPEC_HISTORY*/", spec_history).replace("/*INSERT_BINARY_STRING*/", binary_string)
-          
-        return html
-
-    app.add_url_rule("/", view_func=index)
-
-    webbrowser.open_new_tab("http://localhost:55791")
-    app.run(port=55791)

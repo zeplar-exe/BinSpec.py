@@ -1,7 +1,7 @@
 import math
 
 
-def bits_to_bytes(bits: list[int], *, big_endian: bool=True) -> bytes:
+def bits_to_bytes(bits: bytes, *, big_endian: bool=True) -> bytes:
   byte_count = math.ceil(len(bits) / 8)
   b = bytearray()
 
@@ -51,7 +51,8 @@ def bits_to_bytes(bits: list[int], *, big_endian: bool=True) -> bytes:
   
   return bytes(b)
 
-def bits_to_int(bits: list[int], *, big_endian: bool=True) -> int:
+
+def bits_to_int(bits: bytes, *, big_endian: bool=True) -> int:
   b = bits_to_bytes(bits, big_endian=big_endian)
   n = int.from_bytes(b, byteorder="big")
 

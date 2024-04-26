@@ -120,3 +120,35 @@ html_template = """
 
 </html>
 """
+
+from ..spec import Specification
+
+def show(spec: Specification, data: bytes, *, port: int=55791):
+    """Show a webpage which visualizes the specification. This method depends on the given :class:`Specification`'s history tracking to be enabled. Addtionally requires Flask to be installed.
+    
+    :param stream: A bytes object used to display the specification. In most cases, this is sourced from the bytes stream that was initially passed to the specification.
+    :param port: The local port to host the webpage on."""
+
+    if not spec.is_history_enabled():
+        raise ValueError("Expected a Specification with history enabled.")
+
+    from flask import Flask
+    import webbrowser
+
+    app = Flask("BinSpec")
+
+    def index():
+        json_spec_template = "{ bit_length: %s, label: '%s' }"
+        spec_history = ",".join(map(lambda s: json_spec_template % (s[0].get_bit_length(), s[2]), spec.get_history()))
+        binary_string = "".join(map(lambda b: format(b, '#010b'), stream.read()))
+
+        from .ui import html_template
+
+        html = html_template.replace("/*INSERT_SPEC_HISTORY*/", spec_history).replace("/*INSERT_BINARY_STRING*/", binary_string)
+          
+        return html
+
+    app.add_url_rule("/", view_func=index)
+
+    webbrowser.open_new_tab(f"http://localhost:{port}")
+    app.run(port=port)
