@@ -2,6 +2,15 @@ import math
 
 
 def bits_to_bytes(bits: bytes, *, big_endian: bool=True) -> bytes:
+  """**This function expects a bytes object where each byte represents a single bit. It is primarily meant to be used when implementing a :class:`SpecType`'s parse method.
+  
+  Arguments
+  :param bits: bytes object of bits to convert. 
+  
+  Keyword Arguments
+  :param big_endian: Flag whether to create a big endian :class:`bytes` object.
+  
+  :return: A :class:`bytes` containing the given bits as if they were compressed."""
   byte_count = math.ceil(len(bits) / 8)
   b = bytearray()
 
@@ -53,6 +62,15 @@ def bits_to_bytes(bits: bytes, *, big_endian: bool=True) -> bytes:
 
 
 def bits_to_int(bits: bytes, *, big_endian: bool=True) -> int:
+  """**This function expects a bytes object where each byte represents a single bit. It is primarily meant to be used when implementing a :class:`SpecType`'s parse method.
+  
+  Arguments
+  :param bits: bytes object of bits to convert to an integer. 
+  
+  Keyword Arguments
+  :param big_endian: Flag whether to read the given bits in big endian or little endian order.
+  
+  :return: An n-bit integer from the given bits."""
   b = bits_to_bytes(bits, big_endian=big_endian)
   n = int.from_bytes(b, byteorder="big")
 

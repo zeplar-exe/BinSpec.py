@@ -8,12 +8,15 @@ class Specification:
   """This class is the primary interface for parsing binary streams with :class:`SpecTypes`.
   
   Arguments:
-  :param stream: BytesIO object or similar which yields bytes from a read() method.
+  :param stream: Bytes-like object.
 
   Keyword Arguments:
   :param track_history: flag whether to keep track of SpecTypes passed to expect(...).
   :param middleware: callable invoked whenever a SpecType successfully parses a value."""
-  def __init__(self, stream: BytesIO, *, track_history: bool=True, middleware: Callable[SpecType, Any]=None):
+  def __init__(self, stream: Union[BytesIO, bytes, bytearray], *, track_history: bool=True, middleware: Callable[SpecType, Any]=None):
+    if isinstance(stream, bytes) or isinstance(stream, bytearray):
+      stream = BytesIO(stream)
+
     self.stream: BytesIO = stream
     self.middleware: Callable[SpecType, Any] = middleware
 
@@ -30,16 +33,20 @@ class Specification:
     return self.__history
 
   def is_history_enabled(self):
-    return self.__history != None
+    """:return: Whether history tracking is enabled (track_history=True was passed to the constructor)."""
+    return self.__history is not None
 
   def expect(self, spec_type: SpecType, *, none_at_eof: bool=False, label: Union[str, None]=None) -> Any:
-    """Use the specified SpecType to parse from the bytes stream.
+    """Use the specified :class:`SpecType` to parse from the bytes stream.
     
     Arguments:
-    :param spec_type: the SpecType to use
+    :param spec_type: The :class:`SpecType` to parse.
     
     Keyword Arguments
-    :param none_at-eof: if false, this method will raise a SpecError when attempting to read past the end of the stream. If true, this method will return None in that case."""
+    :param none_at_eof: If false, this method will raise a SpecError when attempting to read past the end of the stream. If true, this method will return None instead.
+    :param label: An optional label to attach to the :class:`SpecType` when it is added to the history (only if history tracking is enabled). Can realistically be any object as it is added to a tuple and never touched again.
+    
+    :return: A corresponding python object to the given :class:`SpecType`."""
     bit_length = spec_type.get_bit_length()
 
     if bit_length < 0:
@@ -61,17 +68,20 @@ class Specification:
     return value
 
   def assert_eof(self) -> None:
-    """Check if there are more bytes left in the stream and raise a SpecEofError if not. This method moves the stream forward by one."""
+    """Check if there are more bytes left in the stream and raise a SpecEofError if not."""
     if len(self.stream.read(1)) > 0:
       raise SpecEofError(f"Expected end of file after {self.__byte_offset} bytes.")
 
   def __take_bits(self, count: int, none_at_eof: bool) -> list[int]:
     def next_byte():
+      nonlocal none_at_eof
+      
       try:
         self.__current_byte = self.stream.read(1)[0]
       except IndexError as err:
         if none_at_eof:
-          return None
+          self.__current_byte = None
+          return
         
         raise SpecEofError(f"Ran out of bytes. Expected byte after {self.__byte_offset} bytes.") from err
     
@@ -85,7 +95,7 @@ class Specification:
     
     while count > 0:
       count -= 1
-
+      
       if self.__bit_offset == 8:
         self.__bit_offset = 0
         next_byte()
