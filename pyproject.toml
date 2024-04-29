@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "binspec_zeplar"
+version = "1.0.0"
+authors = [
+  { name="zeplar exe" },
+]
+description = "BinSpec (short for Binary Specification) is a binary parsing library built with Python 3."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/zeplar-exe/BinSpec.py"
+Issues = "https://github.com/zeplar-exe/BinSpec.py/issues"
