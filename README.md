@@ -57,7 +57,18 @@ with open("my_imaginary_file.binary", "rb") as f:
 
 ### UI
 
-Additonally, a simple webpage is provided to visualize a specification.
+Additonally, a simple webpage is provided to visualize a specification via a webpage.
+
+```py
+from binspec.ui import show
+
+data = bytearray()
+# ...
+
+spec = Specification(data)
+show(spec, data) # A bytes-like copy of the data must be provided to show.
+
+```
 
 ## Creating Custom SpecTypes
 
